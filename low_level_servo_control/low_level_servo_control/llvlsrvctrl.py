@@ -9,6 +9,8 @@ from adafruit_pca9685 import PCA9685
 from utility.constants import LegJointsEnum
 from msgs_srvs_acts import ServoAngles
 
+import time
+
 
 class LowLevelServoController(Node):
         def __init__(self):
@@ -29,6 +31,23 @@ class LowLevelServoController(Node):
             # create the publisher and its timer
             self.publisher = self.create_publisher(ServoAngles, 'current_servo_angles', 1)
             self.timer = self.create_timer(0.05, self.publish_servo_angles)
+
+            self.home_pos = [0. for i in range(17)]
+            self.home_pos[LegJointsEnum.FL_COXA] = 0.3
+            self.home_pos[LegJointsEnum.FL_FEMUR] = 1.0
+            self.home_pos[LegJointsEnum.FL_TIBIA] = 0.75
+            self.home_pos[LegJointsEnum.FR_COXA] = 0.7
+            self.home_pos[LegJointsEnum.FR_FEMUR] = 0.0
+            self.home_pos[LegJointsEnum.FR_TIBIA] = 0.25
+            self.home_pos[LegJointsEnum.BL_COXA] = 0.7
+            self.home_pos[LegJointsEnum.BL_FEMUR] = 0.0
+            self.home_pos[LegJointsEnum.BL_TIBIA] = 0.25
+            self.home_pos[LegJointsEnum.BR_COXA] = 0.3
+            self.home_pos[LegJointsEnum.BR_FEMUR] = 1.0
+            self.home_pos[LegJointsEnum.BR_TIBIA] = 0.75
+            self.home_pos[LegJointsEnum.HEAD_YAW] = 0.5
+            self.home_pos[LegJointsEnum.HEAD_PITCH] = 0.6
+            self.set_servo_angles(self.home_pos)
 
         def publish_servo_angles(self):
             # create the message
@@ -53,22 +72,65 @@ class LowLevelServoController(Node):
 
 
         def servo_angles_callback(self, msg):
-            # set the servo angles to the corresponding part of the leg joints
-            self.desired_servo_angles[LegJointsEnum.FL_COXA] = msg.angles[LegJointsEnum.FL_COXA]
-            self.desired_servo_angles[LegJointsEnum.FL_FEMUR] = msg.angles[LegJointsEnum.FL_FEMUR]
-            self.desired_servo_angles[LegJointsEnum.FL_TIBIA] = msg.angles[LegJointsEnum.FL_TIBIA]
-            self.desired_servo_angles[LegJointsEnum.FR_COXA] = msg.angles[LegJointsEnum.FR_COXA]
-            self.desired_servo_angles[LegJointsEnum.FR_FEMUR] = msg.angles[LegJointsEnum.FR_FEMUR]
-            self.desired_servo_angles[LegJointsEnum.FR_TIBIA] = msg.angles[LegJointsEnum.FR_TIBIA]
-            self.desired_servo_angles[LegJointsEnum.BL_COXA] = msg.angles[LegJointsEnum.BL_COXA]
-            self.desired_servo_angles[LegJointsEnum.BL_FEMUR] = msg.angles[LegJointsEnum.BL_FEMUR]
-            self.desired_servo_angles[LegJointsEnum.BL_TIBIA] = msg.angles[LegJointsEnum.BL_TIBIA]
-            self.desired_servo_angles[LegJointsEnum.BR_COXA] = msg.angles[LegJointsEnum.BR_COXA]
-            self.desired_servo_angles[LegJointsEnum.BR_FEMUR] = msg.angles[LegJointsEnum.BR_FEMUR]
-            self.desired_servo_angles[LegJointsEnum.BR_TIBIA] = msg.angles[LegJointsEnum.BR_TIBIA]
-            self.desired_servo_angles[LegJointsEnum.HEAD_YAW] = msg.angles[LegJointsEnum.HEAD_YAW]
-            self.desired_servo_angles[LegJointsEnum.HEAD_PITCH] = msg.angles[LegJointsEnum.HEAD_PITCH]
-            
+            # set the servo angles to the corresponding part of the leg joints, if they are above or equal to zero.
+            # Otherwise, keep the current desired servo angle.
+            self.desired_servo_angles[LegJointsEnum.FL_COXA] = msg.angles[LegJointsEnum.FL_COXA] if msg.angles[LegJointsEnum.FL_COXA] >= 0.0 else self.desired_servo_angles[LegJointsEnum.FL_COXA]
+            self.desired_servo_angles[LegJointsEnum.FL_FEMUR] = msg.angles[LegJointsEnum.FL_FEMUR] if msg.angles[LegJointsEnum.FL_FEMUR] >= 0.0 else self.desired_servo_angles[LegJointsEnum.FL_FEMUR]
+            self.desired_servo_angles[LegJointsEnum.FL_TIBIA] = msg.angles[LegJointsEnum.FL_TIBIA] if msg.angles[LegJointsEnum.FL_TIBIA] >= 0.0 else self.desired_servo_angles[LegJointsEnum.FL_TIBIA]
+            self.desired_servo_angles[LegJointsEnum.FR_COXA] = msg.angles[LegJointsEnum.FR_COXA] if msg.angles[LegJointsEnum.FR_COXA] >= 0.0 else self.desired_servo_angles[LegJointsEnum.FR_COXA]
+            self.desired_servo_angles[LegJointsEnum.FR_FEMUR] = msg.angles[LegJointsEnum.FR_FEMUR] if msg.angles[LegJointsEnum.FR_FEMUR] >= 0.0 else self.desired_servo_angles[LegJointsEnum.FR_FEMUR]
+            self.desired_servo_angles[LegJointsEnum.FR_TIBIA] = msg.angles[LegJointsEnum.FR_TIBIA] if msg.angles[LegJointsEnum.FR_TIBIA] >= 0.0 else self.desired_servo_angles[LegJointsEnum.FR_TIBIA]
+            self.desired_servo_angles[LegJointsEnum.BL_COXA] = msg.angles[LegJointsEnum.BL_COXA] if msg.angles[LegJointsEnum.BL_COXA] >= 0.0 else self.desired_servo_angles[LegJointsEnum.BL_COXA]
+            self.desired_servo_angles[LegJointsEnum.BL_FEMUR] = msg.angles[LegJointsEnum.BL_FEMUR] if msg.angles[LegJointsEnum.BL_FEMUR] >= 0.0 else self.desired_servo_angles[LegJointsEnum.BL_FEMUR]
+            self.desired_servo_angles[LegJointsEnum.BL_TIBIA] = msg.angles[LegJointsEnum.BL_TIBIA] if msg.angles[LegJointsEnum.BL_TIBIA] >= 0.0 else self.desired_servo_angles[LegJointsEnum.BL_TIBIA]
+            self.desired_servo_angles[LegJointsEnum.BR_COXA] = msg.angles[LegJointsEnum.BR_COXA] if msg.angles[LegJointsEnum.BR_COXA] >= 0.0 else self.desired_servo_angles[LegJointsEnum.BR_COXA]
+            self.desired_servo_angles[LegJointsEnum.BR_FEMUR] = msg.angles[LegJointsEnum.BR_FEMUR] if msg.angles[LegJointsEnum.BR_FEMUR] >= 0.0 else self.desired_servo_angles[LegJointsEnum.BR_FEMUR]
+            self.desired_servo_angles[LegJointsEnum.BR_TIBIA] = msg.angles[LegJointsEnum.BR_TIBIA] if msg.angles[LegJointsEnum.BR_TIBIA] >= 0.0 else self.desired_servo_angles[LegJointsEnum.BR_TIBIA]
+            self.desired_servo_angles[LegJointsEnum.HEAD_YAW] = msg.angles[LegJointsEnum.HEAD_YAW] if msg.angles[LegJointsEnum.HEAD_YAW] >= 0.0 else self.desired_servo_angles[LegJointsEnum.HEAD_YAW]
+            self.desired_servo_angles[LegJointsEnum.HEAD_PITCH] = msg.angles[LegJointsEnum.HEAD_PITCH] if msg.angles[LegJointsEnum.HEAD_PITCH] >= 0.0 else self.desired_servo_angles[LegJointsEnum.HEAD_PITCH]
 
 
-            
+        def set_servo_angles(self, servo_angles, sleep_between_ms=0.):
+            # set the servo angles to given servo angles
+            self.servos[LegJointsEnum.FL_COXA].fraction = servo_angles[LegJointsEnum.FL_COXA]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.FL_FEMUR].fraction = servo_angles[LegJointsEnum.FL_FEMUR]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.FL_TIBIA].fraction = servo_angles[LegJointsEnum.FL_TIBIA]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.FR_COXA].fraction = servo_angles[LegJointsEnum.FR_COXA]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.FR_FEMUR].fraction = servo_angles[LegJointsEnum.FR_FEMUR]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.FR_TIBIA].fraction = servo_angles[LegJointsEnum.FR_TIBIA]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.BL_COXA].fraction = servo_angles[LegJointsEnum.BL_COXA]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.BL_FEMUR].fraction = servo_angles[LegJointsEnum.BL_FEMUR]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.BL_TIBIA].fraction = servo_angles[LegJointsEnum.BL_TIBIA]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.BR_COXA].fraction = servo_angles[LegJointsEnum.BR_COXA]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.BR_FEMUR].fraction = servo_angles[LegJointsEnum.BR_FEMUR]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.BR_TIBIA].fraction = servo_angles[LegJointsEnum.BR_TIBIA]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.HEAD_YAW].fraction = servo_angles[LegJointsEnum.HEAD_YAW]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
+            self.servos[LegJointsEnum.HEAD_PITCH].fraction = servo_angles[LegJointsEnum.HEAD_PITCH]
+            if sleep_between_ms > 0.:
+                time.sleep(sleep_between_ms / 1000.)
