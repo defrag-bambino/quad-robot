@@ -22,8 +22,8 @@ class LowLevelServoController(Node):
             self.pca.frequency = 60
 
             # set up the servos
-            self.servos = [servo.Servo(self.pca.channels[i]) for i in range(17)]
-            self.desired_servo_angles = [0. for i in range(17)]
+            self.servos = [servo.Servo(self.pca.channels[i]) for i in range(16)]
+            self.desired_servo_angles = [0. for i in range(16)]
 
             # create the subscriber
             self.subscription = self.create_subscription(ServoAngles, 'desired_servo_angles', self.servo_angles_callback, 1)
@@ -32,7 +32,7 @@ class LowLevelServoController(Node):
             self.publisher = self.create_publisher(ServoAngles, 'current_servo_angles', 1)
             self.timer = self.create_timer(0.05, self.publish_servo_angles)
 
-            self.home_pos = [0. for i in range(17)]
+            self.home_pos = [0. for i in range(16)]
             self.home_pos[LegJointsEnum.FL_COXA] = 0.3
             self.home_pos[LegJointsEnum.FL_FEMUR] = 1.0
             self.home_pos[LegJointsEnum.FL_TIBIA] = 0.75
