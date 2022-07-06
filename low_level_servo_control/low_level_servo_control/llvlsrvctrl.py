@@ -47,7 +47,7 @@ class LowLevelServoController(Node):
             self.home_pos[LegJointsEnum.BR_TIBIA] = 0.75
             self.home_pos[LegJointsEnum.HEAD_YAW] = 0.5
             self.home_pos[LegJointsEnum.HEAD_PITCH] = 0.6
-            self.set_servo_angles(self.home_pos, sleep_between_ms=50)
+            self.set_servo_angles(self.home_pos, sleep_between_ms=150)
 
         def publish_servo_angles(self):
             # create the message
