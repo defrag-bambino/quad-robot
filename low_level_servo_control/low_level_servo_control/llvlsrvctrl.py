@@ -7,7 +7,7 @@ from adafruit_motor import servo
 from adafruit_pca9685 import PCA9685
 
 from utility.constants import LegJointsEnum
-from msgs_srvs_acts import ServoAngles
+from msgs_srvs_acts.msg import ServoAngles
 
 import time
 
