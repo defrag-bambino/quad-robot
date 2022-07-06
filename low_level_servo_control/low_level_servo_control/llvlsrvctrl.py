@@ -134,3 +134,15 @@ class LowLevelServoController(Node):
             self.servos[LegJointsEnum.HEAD_PITCH].fraction = servo_angles[LegJointsEnum.HEAD_PITCH]
             if sleep_between_ms > 0.:
                 time.sleep(sleep_between_ms / 1000.)
+
+def main(args=None):
+    rclpy.init(args=args)
+    llvsctrl = LowLevelServoController()
+    rclpy.spin(llvsctrl)
+
+    llvsctrl.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

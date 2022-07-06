@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'low_level_servo_control = low_level_servo_control.llvlsrvctrl:main',
         ],
     },
 )
