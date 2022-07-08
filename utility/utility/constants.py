@@ -19,3 +19,28 @@ class LegJointsEnum:
     HEAD_YAW = 10
     HEAD_PITCH = 5
 
+    def __iter__(self):
+        return (i for i in range(16))
+
+
+
+HOME_POS = [0. for i in range(16)]
+HOME_POS[LegJointsEnum.FL_COXA] = 0.3
+HOME_POS[LegJointsEnum.FL_FEMUR] = 1.0
+HOME_POS[LegJointsEnum.FL_TIBIA] = 0.75
+HOME_POS[LegJointsEnum.FR_COXA] = 0.7
+HOME_POS[LegJointsEnum.FR_FEMUR] = 0.0
+HOME_POS[LegJointsEnum.FR_TIBIA] = 0.25
+HOME_POS[LegJointsEnum.BL_COXA] = 0.7
+HOME_POS[LegJointsEnum.BL_FEMUR] = 0.0
+HOME_POS[LegJointsEnum.BL_TIBIA] = 0.25
+HOME_POS[LegJointsEnum.BR_COXA] = 0.3
+HOME_POS[LegJointsEnum.BR_FEMUR] = 1.0
+HOME_POS[LegJointsEnum.BR_TIBIA] = 0.75
+HOME_POS[LegJointsEnum.HEAD_YAW] = 0.5
+HOME_POS[LegJointsEnum.HEAD_PITCH] = 0.6
+
+
+
+SERVO_MOVE_TIME_MS = 500
+
