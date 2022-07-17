@@ -36,21 +36,21 @@ class LowLevelServoController(Node):
 
             # init the servo angles to the home position
             for leg_joint in LegJointsEnum():
-                self.servos[leg_joint].angle = HOME_POS[leg_joint]
-            self.set_servo_angles(self.home_pos, sleep_between_ms=150)
+                self.servos[leg_joint].fraction = HOME_POS[leg_joint]
+                print("moving to home pos", HOME_POS[leg_joint], leg_joint)
+                self.desired_servo_angles[leg_joint] = self.servos[leg_joint].fraction
+                time.sleep(0.15)
 
         def update_and_publish_servo_angles(self):
             now_time = self.get_clock().now()
-            servo_move_duration = rclpy.Duration(SERVO_MOVE_TIME_MS / 1000.)
+            servo_move_duration = rclpy.duration.Duration(seconds=(SERVO_MOVE_TIME_MS / 1000.))
             for leg_joint in LegJointsEnum():
                 time_since_des_serv_ang_timestamp = now_time - self.des_serv_ang_timestamp[leg_joint]
-                fractional_move_duration = time_since_des_serv_ang_timestamp / servo_move_duration
+                fractional_move_duration = time_since_des_serv_ang_timestamp.nanoseconds / servo_move_duration.nanoseconds
                 if fractional_move_duration <= 1.0:
-                    self.servos[leg_joint].fraction = easing_p.CubicEaseInOut(fractional_move_duration) * (self.desired_servo_angles[leg_joint] - self.servos[leg_joint].angle) + self.servos[leg_joint].angle
+                    self.servos[leg_joint].fraction = max(0.,min(1.,easing_p.CubicEaseInOut(fractional_move_duration) * (self.desired_servo_angles[leg_joint] - self.servos[leg_joint].fraction) + self.servos[leg_joint].fraction))
                 else:
-                    self.servos[leg_joint].fraction = self.desired_servo_angles[leg_joint]
-            self.set_servo_angles(self.servos[leg_joint].angle)
-                
+                    self.servos[leg_joint].fraction = max(0.,min(1.,self.desired_servo_angles[leg_joint]))
             # create the message
             msg = ServoAngles()
             # set the message angles to the current servo angles
@@ -66,16 +66,9 @@ class LowLevelServoController(Node):
             # move the servos to the desired angles.
             for leg_joint in LegJointsEnum():
                 if msg.angles[leg_joint] >= 0.0:
-                    self.desired_servo_angles[leg_joint] = msg.angles[leg_joint]
+                    print("setting new des serv angle", leg_joint, msg.angles[leg_joint])
+                    self.desired_servo_angles[leg_joint] = max(0., min(1., msg.angles[leg_joint]))
                     self.des_serv_ang_timestamp[leg_joint] = self.get_clock().now()
-
-
-        def set_servo_angles(self, servo_angles, sleep_between_ms=0.):
-            # set the servo angles to given servo angles
-            for leg_joint in LegJointsEnum():
-                self.servos[leg_joint].angle = servo_angles[leg_joint]
-                if sleep_between_ms > 0.:
-                    time.sleep(sleep_between_ms / 1000.)
 
 def main(args=None):
     rclpy.init(args=args)
